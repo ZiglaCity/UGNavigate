@@ -1,5 +1,6 @@
 package com.ugnavigate;
 
+import com.ugnavigate.algorithms.dijkstra.Dijkstra;
 import com.ugnavigate.models.*;
 import com.ugnavigate.utils.GraphUtils;
 import com.ugnavigate.utils.LandmarkLoader;
@@ -44,5 +45,12 @@ public class Main {
             double weight = edge.getWeight();
             System.out.println(" - " + neighbor.getId() + " (" + neighbor.getLandmark().getName() + ") at a distance: " + edge.getDistance() + "M and direction: " + edge.getDirection()  );
         }
+
+        start = graph.getNode("Computer Science Dept");
+        GraphNode destination = graph.getNode("Annie  Jiagge Road");
+
+        Dijkstra dj = new Dijkstra(start, destination);
+        dj.getShortestPath(start, 0);
+
     }
 }
