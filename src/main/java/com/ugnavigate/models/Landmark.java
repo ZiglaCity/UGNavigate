@@ -1,5 +1,7 @@
 package com.ugnavigate.models;
 
+import com.ugnavigate.utils.LandmarkLoader;
+
 import java.util.Map;
 
 public class Landmark {
@@ -8,7 +10,16 @@ public class Landmark {
     private double lon;
     private long id;
     private String osm_type;
-    private Map<String, String> tags;
+    private Map<String, Map<String, String>> tags;
+
+    public Landmark(String name, double latitude, double longitude, long id, String osm_type, Map<String, Map<String, String>> tags){
+        this.name = name;
+        lat = latitude;
+        lon = longitude;
+        this.id = id;
+        this.osm_type = osm_type;
+        this.tags = tags;
+    }
 
     public String getName() {
         return name;
@@ -30,7 +41,7 @@ public class Landmark {
         return osm_type;
     }
 
-    public Map<String, String> getTags() {
+    public Map<String, Map<String, String>> getTags() {
         return tags;
     }
 }
