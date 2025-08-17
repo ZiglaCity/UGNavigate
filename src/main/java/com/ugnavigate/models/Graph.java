@@ -8,18 +8,18 @@ import java.util.Map;
 public class Graph {
     private final Map<String, GraphNode> nodes = new HashMap<>();
 
-    public Graph(Map<String, Landmark> landmarks, Map<String, List<String>> adjacencyList) {
+    public Graph(Map<String, Landmark> landmarks, Map<String, List<Neighbor>> adjacencyList) {
         for (String id : adjacencyList.keySet()) {
             GraphNode node = getOrCreateNode(id);
             node.setLandmark(landmarks.get(id));
         }
 
-        for (Map.Entry<String, List<String>> entry : adjacencyList.entrySet()) {
+        for (Map.Entry<String, List<Neighbor>> entry : adjacencyList.entrySet()) {
             GraphNode node = nodes.get(entry.getKey());
-            for (String neighborId : entry.getValue()) {
-                GraphNode neighbor = getOrCreateNode(neighborId);
-                //  the weights of the edges will later be determined from the tags related to the landmarks...(eg; banks and markets: 3, shops: 2, rest: 1;
-                Edge edge = new Edge(node, neighbor, 1);
+            for (Neighbor nei : entry.getValue()) {
+                GraphNode neighbor = getOrCreateNode(nei.getNeighbor());
+                // for every neighbor we create an edge with the weights of the edges; it will later be determined from the tags related to the landmarks...(eg; banks and markets: 3, shops: 2, rest: 1;
+                Edge edge = new Edge(node, neighbor, 1, nei.getDistanceMeters(), nei.getDirection());
                 node.addNeighbor(edge);
             }
         }

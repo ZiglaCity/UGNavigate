@@ -2,20 +2,21 @@ package com.ugnavigate.models;
 
 import com.ugnavigate.utils.LandmarkLoader;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Landmark {
-    private String name;
-    private double lat;
-    private double lon;
-    private long id;
-    private String osm_type;
-    private Map<String, Map<String, String>> tags;
+    private final String name;
+    private final double lat;
+    private final double lon;
+    private final long id;
+    private final String osm_type;
+    private final Map<String, String> tags;
 
-    public Landmark(String name, double latitude, double longitude, long id, String osm_type, Map<String, Map<String, String>> tags){
+    public Landmark(String name, double lat, double lon, long id, String osm_type, Map<String, String> tags){
         this.name = name;
-        lat = latitude;
-        lon = longitude;
+        this.lat = lat;
+        this.lon = lon;
         this.id = id;
         this.osm_type = osm_type;
         this.tags = tags;
@@ -41,7 +42,7 @@ public class Landmark {
         return osm_type;
     }
 
-    public Map<String, Map<String, String>> getTags() {
+    public Map<String, String> getTags() {
         return tags;
     }
 }

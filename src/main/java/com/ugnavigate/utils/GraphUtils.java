@@ -33,11 +33,9 @@ public class GraphUtils {
             Gson gson = new Gson();
             Type type = new TypeToken<Map<String, List<Neighbor>>>(){}.getType();
             adjacencyList = gson.fromJson(reader, type);
-            return gson.fromJson(reader, type);
+            return adjacencyList;
         } catch (Exception e) {
             throw new RuntimeException("Error loading graph: " + e.getMessage(), e);
         }
-
-//        return adjacencyList;
     }
 }
