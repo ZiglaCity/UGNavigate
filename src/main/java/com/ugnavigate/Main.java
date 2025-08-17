@@ -1,17 +1,22 @@
 package com.ugnavigate;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import com.ugnavigate.utils.GraphUtils;
+import com.ugnavigate.models.Neighbor;
+
+import java.util.List;
+import java.util.Map;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome to UGNavigate!");
+        String filePath = "data/adjacency_list.json";
+        Map<String, List<Neighbor>> graph = GraphUtils.loadGraph(filePath);
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        System.out.println("=== UG Navigate Graph ===");
+        for (Map.Entry<String, List<Neighbor>> entry : graph.entrySet()) {
+            System.out.println(entry.getKey() + " ->");
+            for (Neighbor neighbor : entry.getValue()) {
+                System.out.println("    " + neighbor);
+            }
         }
     }
 }
