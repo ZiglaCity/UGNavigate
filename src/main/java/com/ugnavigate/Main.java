@@ -50,7 +50,15 @@ public class Main {
         GraphNode destination = graph.getNode("Annie  Jiagge Road");
 
         Dijkstra dj = new Dijkstra(start, destination);
-        dj.getShortestPath(start, 0);
+        dj.solveUsingDijkstra();
+        System.out.println(dj.getShortestDistance());
+
+        start = graph.getNode("Night Market");
+        destination = graph.getNode("All Needs Supermarket");
+
+        dj = new Dijkstra(start, destination);
+        dj.solveUsingDijkstra();
+        System.out.println(dj.getShortestDistance());
 
     }
 }

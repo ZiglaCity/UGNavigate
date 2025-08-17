@@ -10,22 +10,41 @@ import java.util.Map;
 public class Dijkstra {
     Map<GraphNode, Double> unvisited = new HashMap<>();
     Map<GraphNode, Double> visited = new HashMap<>();
-    private GraphNode destination;
+    private final GraphNode destination;
+    private double shortestDistance;
+    private final GraphNode start;
+    private List<GraphNode> shortestPath;
 
     public Dijkstra(GraphNode start, GraphNode destination){
         this.destination = destination;
-        initilizeUnvisited(start);
+        this.start = start;
+        initializeUnvisited(start);
     }
 
-    public void initilizeUnvisited(GraphNode start){
+    public void initializeUnvisited(GraphNode start){
         List<Edge> neighbors = start.getNeighbors();
         for (Edge neighbor: neighbors){
             unvisited.put(neighbor.getTo(), neighbor.getDistance());
         }
     }
 
-    public double getShortestPath(GraphNode curNode, double curNodeDistance){
-//        initialize visited to keep track of nodes whose shortest path have been found
+    public double getShortestDistance(){
+        return shortestDistance;
+    }
+
+    public void solveUsingDijkstra(){
+        if (this.start == destination){
+            shortestDistance = 0;
+            shortestPath = null;
+        }
+        else{
+            double startDistance = 0.0;
+            Solution(start, startDistance);
+        }
+    }
+
+    public void Solution(GraphNode curNode, double curNodeDistance){
+        //        initialize visited to keep track of nodes whose shortest path have been found
 //        initialize unvisited to keep track of nodes whose shortest path have not been found yet
 //        from the unvisited, select the node with the shortest distance
 //        from that node, getShortestPath to our destination
@@ -35,7 +54,7 @@ public class Dijkstra {
 
         if (curNode == destination){
             System.out.println(curNodeDistance);
-            return curNodeDistance;
+            shortestDistance = curNodeDistance;
         }
 
         List<Edge> neighbors = curNode.getNeighbors();
@@ -63,10 +82,17 @@ public class Dijkstra {
         if (smallest_node != null){
             unvisited.remove(smallest_node);
             visited.put(smallest_node, smallest_distance);
-            getShortestPath(smallest_node, smallest_distance);
+            if (smallest_node != destination){
+                Solution(smallest_node, smallest_distance);
+            }
+            else{
+                shortestDistance = smallest_distance;
+            }
         }
-//        track the path and return instead...
-//        System.out.println(smallest_distance);
-        return smallest_distance;
+//        track the path and determine the shortest path...
+    }
+
+    public List<GraphNode> getShortestPath(){
+        return shortestPath;
     }
 }
