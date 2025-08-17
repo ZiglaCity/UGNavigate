@@ -3,6 +3,7 @@ package com.ugnavigate.algorithms.dijkstra;
 import com.ugnavigate.models.Edge;
 import com.ugnavigate.models.GraphNode;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,10 +15,14 @@ public class Dijkstra {
     private double shortestDistance;
     private final GraphNode start;
     private List<GraphNode> shortestPath;
+    private Map<GraphNode, GraphNode> to_fromPathBuilder;
+    private String pathSummary;
 
     public Dijkstra(GraphNode start, GraphNode destination){
         this.destination = destination;
         this.start = start;
+        this.to_fromPathBuilder = new HashMap<>();
+        this.shortestPath = new ArrayList<>();
         initializeUnvisited(start);
     }
 
@@ -39,8 +44,13 @@ public class Dijkstra {
         }
         else{
             double startDistance = 0.0;
+            visited.put(start, 0.0);
+            for (Edge edge: start.getNeighbors()){
+                to_fromPathBuilder.put(edge.getTo(), start);
+            }
             Solution(start, startDistance);
         }
+        pathBuilder();
     }
 
     public void Solution(GraphNode curNode, double curNodeDistance){
@@ -81,6 +91,9 @@ public class Dijkstra {
 
         if (smallest_node != null){
             unvisited.remove(smallest_node);
+            if(!to_fromPathBuilder.containsKey(smallest_node)){
+                to_fromPathBuilder.put(smallest_node, curNode);
+            }
             visited.put(smallest_node, smallest_distance);
             if (smallest_node != destination){
                 Solution(smallest_node, smallest_distance);
@@ -94,5 +107,32 @@ public class Dijkstra {
 
     public List<GraphNode> getShortestPath(){
         return shortestPath;
+    }
+
+    public void pathBuilder(){
+        GraphNode cur = destination;
+        GraphNode from = to_fromPathBuilder.get(cur);
+        shortestPath.add(cur);
+        String dummyPath = cur.getId() + " --> ";
+        System.out.println(shortestPath);
+        String startName = start.getId();
+        while(from != start){
+            GraphNode temp = cur;
+            cur = from;
+            String curName = cur.getId();
+            from = to_fromPathBuilder.get(temp);
+            String fromName = from.getId();
+            dummyPath += curName + " <-- ";
+            shortestPath.add(cur);
+        }
+
+        pathSummary = "From " + start.getLandmark().getName() + " ";
+        for(GraphNode node: shortestPath){
+            pathSummary += " Go to " + node.getLandmark().getName();
+        }
+    }
+
+    public String getPathSummary() {
+        return pathSummary;
     }
 }

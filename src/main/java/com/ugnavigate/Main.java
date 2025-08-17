@@ -5,6 +5,7 @@ import com.ugnavigate.models.*;
 import com.ugnavigate.utils.GraphUtils;
 import com.ugnavigate.utils.LandmarkLoader;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -46,19 +47,20 @@ public class Main {
             System.out.println(" - " + neighbor.getId() + " (" + neighbor.getLandmark().getName() + ") at a distance: " + edge.getDistance() + "M and direction: " + edge.getDirection()  );
         }
 
-        start = graph.getNode("Computer Science Dept");
+//        start = graph.getNode("Computer Science Dept");
         GraphNode destination = graph.getNode("Annie  Jiagge Road");
 
         Dijkstra dj = new Dijkstra(start, destination);
-        dj.solveUsingDijkstra();
-        System.out.println(dj.getShortestDistance());
+//        dj.solveUsingDijkstra();
+//        System.out.println(dj.getShortestDistance());
 
-        start = graph.getNode("Night Market");
-        destination = graph.getNode("All Needs Supermarket");
+        start = graph.getNode("The Balme Library");
+        destination = graph.getNode("Legon Post Office");
 
         dj = new Dijkstra(start, destination);
         dj.solveUsingDijkstra();
         System.out.println(dj.getShortestDistance());
+        System.out.println(dj.getPathSummary());
 
     }
 }
