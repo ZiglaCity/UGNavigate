@@ -1,0 +1,40 @@
++-------------------------------------------------------------+
+|                        Presentation Layer                   |
+|   - JavaFX / Console UI                                     |
+|   - Input: start, destination, optional tags (e.g., "bank") |
+|   - Output: best routes (shortest, fastest, landmark-based) |
++-------------------------------------------------------------+
+                          |
+                          v
++-------------------------------------------------------------+
+|                       Application Layer                     |
+|   - RouteFinderService                                      |
+|       • Selects and runs algorithms (Dijkstra, A*, etc.)    |
+|       • Applies sorting (MergeSort, QuickSort)              |
+|       • Applies searching (landmarks, route filters)        |
+|   - LandmarkService                                         |
+|       • Handles metadata like tags, categories              |
++-------------------------------------------------------------+
+                          |
+                          v
++-------------------------------------------------------------+
+|                        Domain Layer                         |
+|   - Core Classes:                                           |
+|       • Graph, GraphNode, Edge                              |
+|       • Landmark (with tags, metadata)                      |
+|   - Algorithms:                                             |
+|       • Dijkstra, Floyd-Warshall, A*, Greedy, DP            |
+|       • Vogel, Northwest Corner (optional for time est.)    |
++-------------------------------------------------------------+
+                          |
+                          v
++-------------------------------------------------------------+
+|                        Infrastructure Layer                 |
+|   - Data Loading:                                           |
+|       • Load campus map adjacency list from JSON/CSV        |
+|       • Parse Landmarks (buildings, banks, libraries)       |
+|   - Distance Calculator                                     |
+|       • From dataset or API (Google Maps if extended)       |
+|   - Persistence Layer                                       |
+|       • In-memory storage (for now)                         |
++-------------------------------------------------------------+
