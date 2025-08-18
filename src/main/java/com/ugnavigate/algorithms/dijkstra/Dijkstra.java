@@ -16,6 +16,8 @@ public class Dijkstra {
     private String pathSummary;
 
     public Dijkstra(GraphNode start, GraphNode destination) {
+        validateLocation(start, destination);
+
         this.start = start;
         this.destination = destination;
         this.visited = new HashMap<>();
@@ -29,6 +31,12 @@ public class Dijkstra {
             to_fromPathBuilder.put(edge.getTo(), start);
         }
         visited.put(start, 0.0);
+    }
+
+    private void validateLocation(GraphNode start, GraphNode destination) {
+        if (start == null || destination == null) {
+            throw new IllegalArgumentException("Invalid path provided! Start or destination is null.");
+        }
     }
 
     public void solve() {

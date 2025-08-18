@@ -57,6 +57,10 @@ public class Main {
         start = graph.getNode("The Balme Library");
         destination = graph.getNode("Legon Post Office");
 
+        if (!graph.getAllNodes().contains(start) || !graph.getAllNodes().contains(destination)) {
+            throw new IllegalArgumentException("Invalid path provided! One or both nodes are not in the graph.");
+        }
+
         dj = new Dijkstra(start, destination);
         dj.solve();
         System.out.println(dj.getShortestDistance());
