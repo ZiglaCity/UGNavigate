@@ -58,7 +58,7 @@ public class Main {
         destination = graph.getNode("Legon Post Office");
 
         dj = new Dijkstra(start, destination);
-        dj.solveUsingDijkstra();
+        dj.solve();
         System.out.println(dj.getShortestDistance());
         System.out.println(dj.getPathSummary());
 
