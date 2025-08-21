@@ -18,6 +18,10 @@ public class Graph {
             GraphNode node = nodes.get(entry.getKey());
             for (Neighbor nei : entry.getValue()) {
                 GraphNode neighbor = getOrCreateNode(nei.getNeighbor());
+                // Ensure neighbor node has its Landmark set if available
+                if (neighbor.getLandmark() == null) {
+                    neighbor.setLandmark(landmarks.get(nei.getNeighbor()));
+                }
                 // for every neighbor we create an edge with the weights of the edges; it will later be determined from the tags related to the landmarks...(eg; banks and markets: 3, shops: 2, rest: 1;
                 Edge edge = new Edge(node, neighbor, 1, nei.getDistanceMeters(), nei.getDirection());
                 node.addNeighbor(edge);

@@ -1,0 +1,144 @@
+UGNavigate — final_ish.readme
+UGNavigate — final_ish.readme
+
+This document explains exactly what each important file in the repository does and how the pieces work together at runtime. Read it when you want to understand the end-to-end flow, debug a failure, or add features.
+
+Top-level run steps (PowerShell)
+- Open a PowerShell terminal in the project root (where `pom.xml` lives).
+- Build and run (quick):
+
+```powershell
+cd C:\Users\SONPON\Desktop\UGNavigate
+mvn -DskipTests=true clean compile
+mvn javafx:run
+```
+
+If `mvn javafx:run` fails due to JavaFX configuration you can package and run with a local JavaFX SDK as described in the project's README or earlier notes.
+
+Where to put resources
+- Map image: `src/main/resources/images/UG_map.png` (the app loads this file at runtime). Put the real campus map here.
+- Data files: `src/main/resources/data/landmarks.json` and `adjacency_list.json`.
+
+High-level runtime flow
+1. App entry: `com.ugnavigate.Main` builds model objects and starts UI/console demos.
+2. Load landmarks: `com.ugnavigate.utils.LandmarkLoader` reads `data/landmarks.json` (supports both old map format and the new array format). It populates `Landmark` instances and returns a Map keyed by multiple normalized keys (name, id, uppercase variants, and short tokens in parentheses).
+3. Load adjacency: `com.ugnavigate.utils.GraphUtils` reads `data/adjacency_list.json` into a Map<String,List<Neighbor>> where each Neighbor contains neighbor id and distance/direction (and optional neighbor_x/neighbor_y for pixel coords).
+4. Build graph: `com.ugnavigate.models.Graph` iterates adjacency keys and neighbors to construct `GraphNode` objects and `Edge` objects. When possible it assigns `Landmark` objects to nodes using loader keys. Neighbors created on-the-fly will get landmark references if the loader map contains matching keys.
+5. UI: `com.ugnavigate.ui.MapRenderer` (JavaFX) displays the campus map, draws landmarks as blue pins, accepts user clicks to choose start/end, and can run routing algorithms (Dijkstra) to highlight a computed path.
+
+Per-file exact behavior (core files)
+
+- src/main/java/com/ugnavigate/Main.java
+  - Program entry point. Sequence:
+    - Load adjacency: calls `GraphUtils.loadGraph("data/adjacency_list.json")`.
+    - Load landmarks: calls `LandmarkLoader.loadLandmarks("data/landmarks.json")` and prints loaded keys.
+    - Construct `Graph` from both datasets.
+    - Run a few demo algorithm calls (Dijkstra, CriticalPath) and print results.
+    - Launch `ConsoleUI` and, when appropriate, `MapRenderer.render(graph, path)` to open JavaFX windows.
+  - Important notes: `Main` prints diagnostics about loaded landmark keys; if a node's `getLandmark()` is null, Main contains guards that avoid immediate NPEs but you should ensure your `landmarks.json` keys match adjacency keys.
+
+- src/main/java/com/ugnavigate/models/Landmark.java
+  - POJO representing a landmark. Fields: name, lat, lon, id, osm_type, tags (Map<String,String>), and added x/y pixel fields.
+  - Accessors: getters and setters for every field. `x`/`y` are used to represent pixel coordinates on the map image; loader sets them when present.
+
+- src/main/java/com/ugnavigate/models/Graph.java
+  - Stores nodes in a Map<String,GraphNode>. Constructor:
+    - For every key in adjacencyList creates/get GraphNode and sets its landmark from the landmarks map when available.
+    - For each Neighbor in the adjacency record, creates/get the neighbor node, sets neighbor.landmark if available, builds an `Edge` with distance/direction and attaches it to the source node.
+  - Public API: `getNode(id)`, `getAllNodes()`.
+
+- src/main/java/com/ugnavigate/models/GraphNode.java
+  - Represents a node in the graph. Fields: id (string), Landmark reference (nullable), list of Edge neighbors.
+  - Behavior: `addNeighbor(Edge)` to attach outgoing edges.
+
+- src/main/java/com/ugnavigate/models/Edge.java
+  - Represents an edge from a source node to a target node. Stores: from, to (`GraphNode`), weight/cost (integer heuristics), distanceMeters (double), direction (String).
+
+- src/main/java/com/ugnavigate/models/Neighbor.java
+  - Lightweight DTO used by `GraphUtils` when parsing `adjacency_list.json`. Contains neighbor id string, distance meters, direction and optional neighbor_x/neighbor_y or neighbor_lat/neighbor_lon.
+
+- src/main/java/com/ugnavigate/utils/LandmarkLoader.java
+  - Loads `landmarks.json` from resources.
+  - Behavior:
+    - First attempts to parse a Map<String,Landmark> (old format) using Gson.
+    - If that fails, parses an array of simple objects (id,name,x,y,tags) and converts each into a `Landmark` instance.
+    - When converting, it sets `lm.x`/`lm.y` (pixel coordinates) and also copies them into `lm.lon`/`lm.lat` for backward compatibility with mapping code.
+    - Registers each Landmark under multiple keys in the returned Map: human name, id string, uppercase id string, and tokens extracted from parentheses (so "Jones Quartey Building (JQB)" is also registered under "JQB").
+    - Returns Map<String,Landmark> where keys are normalized variants to maximize matching with adjacency keys.
+
+- src/main/java/com/ugnavigate/utils/GraphUtils.java
+  - Loads `adjacency_list.json` (classpath resource path provided). Parses JSON into Map<String,List<Neighbor>>.
+  - Leaves neighbor records unmodified; Graph constructor consumes them to create edges.
+
+- src/main/java/com/ugnavigate/algorithms/dijkstra/Dijkstra.java
+  - Implements a Dijkstra shortest-path solver over `GraphNode` and `Edge` using recursion and maps for visited/unvisited distance bookkeeping.
+  - Public usage: new Dijkstra(startNode, endNode); call `solve()`; then inspect `getShortestDistance()` and `getShortestPath()`.
+  - `getShortestPath()` returns a List<GraphNode> and `getPathSummary()` returns a human-readable path using `Landmark.getName()` when available, otherwise node id.
+
+- src/main/java/com/ugnavigate/algorithms/criticalpath/CriticalPath.java
+  - Contains logic to compute the graph diameter / longest shortest path. Used in Main to demonstrate critical path visualization. Implemented using repeated Dijkstra/FloydWarshall calls depending on code.
+
+- src/main/java/com/ugnavigate/algorithms/floydwarshall/FloydWarshall.java
+  - Floyd–Warshall algorithm implementation for all-pairs shortest paths. Not used by default in MapRenderer but part of the algorithms package for completeness.
+
+- src/main/java/com/ugnavigate/ui/MapRenderer.java
+  - JavaFX visualization. Responsibilities (exact):
+    - Load map image from `src/main/resources/images/UG_map.png` (multiple fallbacks attempted: classpath with/without slash and direct file path when running in IDE).
+    - Create a single `Canvas` and draw the map + overlays onto it. The Canvas is sized to the displayed image.
+    - Load landmarks via `LandmarkLoader` and collect them into a List for display.
+    - Render landmarks as a blue base pin for every landmark (uses `Landmark.x`/`Landmark.y` when present and scales to the displayed canvas size). If `x/y` are missing it falls back to mapping `lat/lon` proportionally.
+    - Accept mouse clicks: first click sets `startLandmark`, second click sets `endLandmark`. If a click is not near an existing landmark, `createSyntheticLandmarkFromCanvas` creates a temporary `Landmark` for that clicked pixel.
+    - `drawPinsAndRoute()` draws the red start pin, green end pin, and a direct green line between them for immediate feedback.
+    - The info panel contains a "Calculate Distance" button. When pressed the handler:
+       - Maps the chosen start/end canvas positions to the nearest `GraphNode` (using canvas-projected coordinates)
+       - Runs `Dijkstra` between those nodes
+       - Calls `drawMap(..., pathIds)` to redraw overlays highlighting the computed path in orange/red and updates the distance label with the graph distance
+    - `drawMap(gc, graph, pathIds)` draws edges and nodes using `mapLatLonToCanvas(...)` for all positions and strokes the route if `pathIds` is provided.
+  - Important: MapRenderer draws the map onto the canvas so the map image should always be visible if the file exists and is readable.
+
+- src/main/java/com/ugnavigate/ui/ConsoleUI.java
+  - A simple console-based UI used for command-line demos (non-JavaFX). It uses the `Graph` object to accept textual start/destination names, runs algorithms, and prints results.
+
+- src/main/java/com/ugnavigate/ui/models/RouteRequest.java
+  - Lightweight DTO used by (mock) routing services. Fields: start (String), destination (String), landmarks (List<String>), criteria (String). Used by `MapRenderer` as a placeholder when calling the `RoutingService` API.
+
+- src/main/java/com/ugnavigate/ui/services/RoutingService.java
+  - Interface describing a routing service with a method `calculateRoutes(RouteRequest)` that returns a list of `RouteResult`.
+
+- src/main/java/com/ugnavigate/ui/services/MockRoutingService.java
+  - A very small mock that returns stub `RouteResult` entries. MapRenderer calls this for now but real routing logic is provided by the `algorithms` package (Dijkstra). The mock exists to illustrate how a service could be swapped in.
+
+- src/main/java/com/ugnavigate/utils/ErrorHandler.java
+  - Small utility used to centralize error formatting and possibly dialog display logic. Not critical to core routing; used by UI and Main.
+
+Test and target artifacts
+- test/java/... contains a JUnit test example `DijkstraAdapterTest.java` demonstrating algorithm unit test wiring.
+- `target/` contains compiled classes and copied resources after `mvn compile`.
+
+Developer notes and exact gotchas
+- UG_map not showing: the renderer tries multiple locations. If the map still does not display:
+  1) Confirm the file exists exactly at `src/main/resources/images/UG_map.png`.
+  2) If running from IDE, ensure resources are marked as resources and copied to `target/classes/images/`.
+  3) If the file is large, the renderer scales it to `imageDisplayWidth` (default 800px). The landmark `x/y` coordinates in `landmarks.json` must be pixel coordinates for the original map image; the renderer scales them to the displayed size.
+
+- Landmark/adjacency key mismatches: adjacency keys are exact strings; `LandmarkLoader` tries to register multiple normalized variants but the safest approach is to make adjacency keys equal the `id` or `name` you used in `landmarks.json`.
+
+- Distance units: the app currently uses the edge `distance_m` field from `adjacency_list.json` as graph distances for algorithms. The Calculate button shows:
+  - Direct immediate visual: a green straight-line in pixel coordinates between chosen canvas points (for quick visual feedback).
+  - Calculated path distance: produced by `Dijkstra` using the `distance_m` values in the graph (shown as "graph units" in the UI label).
+
+How to extend or replace routing logic
+- Replace `MockRoutingService` with a service that calls `Dijkstra`/`FloydWarshall` directly or delegates to a server.
+- You can add UI controls to select criteria (shortest distance, fewest turns, pedestrian vs vehicle) and pass them to algorithm implementations.
+
+Exact commands to debug common issues
+- Show which landmark keys were loaded (run from `Main`): `System.out.println("Loaded landmark keys: " + landmarks.keySet());` — this is already printed by `Main`.
+- If you get NPEs on `getLandmark()`: inspect `adjacency_list.json` keys and compare to the printed landmark keys. Add missing entries to `landmarks.json` or update `adjacency_list.json`.
+
+Contact and next steps
+- If you want, I can:
+  - Convert `landmarks.json` -> use only `id` keys that exactly match adjacency keys.
+  - Write a small validation routine that fails fast if adjacency keys don't match any landmark key and prints suggestions.
+  - Draw the path lengths in meters beside the path on the canvas.
+
+End of file

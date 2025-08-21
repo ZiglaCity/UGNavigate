@@ -10,6 +10,10 @@ import java.util.Map;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collections;
+import java.util.stream.Collectors;
+import com.ugnavigate.models.Graph;
+import com.ugnavigate.models.GraphNode;
 
 
 public class GraphUtils {
@@ -37,5 +41,31 @@ public class GraphUtils {
         } catch (Exception e) {
             throw new RuntimeException("Error loading graph: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Return list of landmark/node name suggestions that start with the given prefix (case-insensitive).
+     * This helper expects a constructed Graph (not the raw adjacency map).
+     */
+    public static List<String> getSuggestions(Graph g, String prefix) {
+        if (g == null || prefix == null || prefix.isBlank()) return Collections.emptyList();
+        String p = prefix.toLowerCase();
+        return g.getAllNodes().stream()
+                .map(GraphNode::getId)
+                .filter(name -> name != null && name.toLowerCase().startsWith(p))
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Verify that a location name exists in the graph (case-insensitive).
+     */
+    public static boolean verifyLocation(Graph g, String name) {
+        if (g == null || name == null || name.isBlank()) return false;
+        String target = name.trim().toLowerCase();
+        return g.getAllNodes().stream()
+                .map(GraphNode::getId)
+                .filter(n -> n != null)
+                .anyMatch(n -> n.trim().toLowerCase().equals(target));
     }
 }

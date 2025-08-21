@@ -1,127 +1,208 @@
-# UGNavigate – UI Developer Guide
+UGNavigate – UI Developer Guide (Final)
 
-This document is specifically for **frontend/UI developers** working on the **UGNavigate desktop app**.
-It explains how to connect the GUI layer to the core navigation algorithms without worrying about the backend internals.
+This document is for frontend/UI developers building the UGNavigate desktop app (JavaFX).
+It explains how the UI connects to the algorithms provided by the backend team and outlines implementation details for a smooth workflow.
 
----
+🎯 Responsibilities of the UI
 
-## Responsibilities of the UI
+Provide input fields for Start Location and Destination.
 
-* Provide **input fields** where users type **Start Location** and **Destination**.
-* Show **typing suggestions** (autocomplete) to prevent invalid locations.
-* Display the **computed shortest path** in a **list form** (step by step) and optionally **render on a campus map**.
-* Show **alerts/errors** when an invalid location is entered.
-* Display **distance/time** results after pathfinding.
+Allow two ways to select locations:
 
-⚠️ The UI **does not handle algorithms, data parsing, or sorting** — these are handled in the `algorithms/` and `data/` packages.
+Dropdown/autocomplete (predefined list of landmarks).
 
----
+Tap-to-pin on the campus map (red pin for Start, red pin for End).
 
-## How to Use Core Functions
+Optional landmark filters (checkbox list of banks, libraries, halls, etc.).
 
-### 1. Import Relevant Classes
+Display multiple route results (min 3):
 
-All you need to work with:
+Distance (km)
 
-```java
-import ugnavigate.algorithms.dijkstra.Dijkstra;
-import ugnavigate.models.Landmark;
-import ugnavigate.models.Route;
-import ugnavigate.utils.GraphUtils;
-```
+Estimated time (min)
 
----
+Route path (landmarks sequence)
 
-### 2. Validate User Input
+Render routes visually on a static UG campus map (with JavaFX overlays).
 
-We provide a helper method to check whether a typed location exists in our campus dataset.
+Highlight the “best route” but allow user to click/view alternatives.
 
-```java
-// Returns true if valid, false if not
-boolean isValid = GraphUtils.verifyLocation("Balme Library");
-```
+Show alerts/errors when invalid inputs are provided.
 
-In UI:
+⚠️ The UI does not implement algorithms — only calls the services provided by the algorithm team.
 
-* If `false`, show `"Invalid location. Please select from suggestions."`.
+🛠️ Project Structure (UI Side)
+/ui
+  /controllers
+    RouteSearchController.java   // Input screen
+    RouteResultsController.java  // Results screen
+  /services
+    RoutingService.java          // Interface for algorithm calls
+    MockRoutingService.java      // Temporary dummy implementation
+  /models
+    RouteRequest.java
+    RouteResult.java
+  /views
+    route_search.fxml
+    route_results.fxml
+  /utils
+    MapRenderer.java             // Handles drawing on map
 
----
+🔗 Connecting to Core Algorithms
 
-### 3. Generate Suggestions While Typing
+The algorithm team exposes pathfinding methods (e.g., Dijkstra.findShortestPath).
+UI developers should not directly call algorithm classes — instead use RoutingService.
 
-On **keypress**, query all campus landmarks:
+Example Interface
+public interface RoutingService {
+    List<RouteResult> calculateRoutes(RouteRequest request);
+}
 
-```java
-List<String> suggestions = GraphUtils.getSuggestions("Bal");  
-// Returns: ["Balme Library", "Balme Cafe", "Balme Annex"]
-```
+RouteRequest
+public class RouteRequest {
+    private String start;
+    private String destination;
+    private List<String> landmarks;
+    private String criteria; // "distance" | "time"
+}
 
-The UI just needs to **display this dropdown** below the input.
+RouteResult
+public class RouteResult {
+    private int routeId;
+    private List<String> path;
+    private double distanceKm;
+    private double estimatedTimeMin;
+    private List<String> landmarks;
+}
 
----
+📥 User Input Flow
+1. Dropdown / Autocomplete
 
-### 4. Compute Shortest Path
+Use GraphUtils.getSuggestions("Bal") from backend utils to show matching landmarks.
 
-Once the user selects valid start and destination:
+Prevents invalid inputs.
 
-```java
-Route route = Dijkstra.findShortestPath("Balme Library", "N Block");
-```
+2. Tap-to-Pin on Map
 
-The `Route` object contains:
+User clicks/taps static UG map.
 
-```java
-route.getPath();     // ["Balme Library", "JQB", "NNB", "N Block"]
-route.getDistance(); // e.g., 1.2 km
-route.getTime();     // e.g., 10 minutes (if traffic weights applied)
-```
+First tap → Start location (red pin).
 
----
+Second tap → Destination (red pin).
 
-### 5. Render Results in UI
+Store coordinates → Map back to nearest landmark node (algorithm team will supply a helper).
 
-* **Textual View:**
-  Show each landmark in order → `"Balme Library → JQB → NNB → N Block"`.
-* **Map View:**
-  Pass `route.getPath()` to `MapRenderer` (already in `ui/` package).
+3. Criteria Selection
 
-Example:
+Radio buttons: Shortest Distance / Shortest Time.
 
-```java
-MapRenderer.render(route.getPath());
-```
+Checkbox list for landmarks (e.g., “Pass by Bank”).
 
----
+⚡ Calling the Algorithm (via Service)
 
-## Error Handling
+When the user clicks “Calculate Route”:
 
-1. If either `start` or `destination` is invalid → throw:
+RouteRequest req = new RouteRequest(
+    "Balme Library",
+    "N Block",
+    Arrays.asList("Bank"),
+    "time"
+);
 
-```java
-throw new RuntimeException("Invalid path provided!");
-```
+List<RouteResult> results = routingService.calculateRoutes(req);
 
-UI should **catch this and show a red error banner**.
 
-2. If no path exists (very rare in campus map), display:
+UI must then:
 
-> `"No available route found."`
+Show all results in a side panel list.
 
----
+Highlight best route automatically.
 
-##  Suggested UI Layout
+Allow user to click another route to re-render on the map.
 
-* **Top section:** Two text fields (Start, Destination) with suggestion dropdowns.
-* **Middle section:** Buttons → `"Find Path"`
-* **Bottom section:**
+🎨 Rendering in JavaFX
 
-    * Left: Route text list (step by step).
-    * Right: Map visualization (using `MapRenderer`).
+Map: ImageView for static UG map.
 
----
+Routes: Drawn using Canvas overlays.
 
-##  Next Steps for UI Dev
+Pins: Small red circles for Start/End.
 
-* Focus only on **inputs, autocomplete, error alerts, and displaying output**.
-* Assume backend algorithms and data parsing **already work**.
-* Just call methods, catch errors, and show results.
+Animation (optional): Polyline drawn with Timeline.
+
+MapRenderer.renderRoute(results.get(0).getPath());
+
+🚨 Error Handling
+
+Invalid Location
+
+Backend throws:
+
+throw new RuntimeException("Invalid location");
+
+
+UI → Show red banner: "Invalid location. Please select from suggestions."
+
+No Route Found
+
+Backend returns empty list.
+
+UI → Show: "No available route found."
+
+💡 Suggested Layout
+Scene 1 – Route Search
+
+Top: Start + Destination input (textfields with autocomplete OR tap-to-pin on map).
+
+Side: Landmark checkboxes, criteria selection.
+
+Bottom: “Calculate Route” button.
+
+Scene 2 – Results
+
+Left: Map with drawn route(s).
+
+Right: Route options list (distance, time, landmarks).
+
+Save/Export (optional).
+
+🧪 Mocking Before Algorithm Team is Ready
+
+Until backend is connected, use MockRoutingService:
+
+public class MockRoutingService implements RoutingService {
+    @Override
+    public List<RouteResult> calculateRoutes(RouteRequest request) {
+        return Arrays.asList(
+            new RouteResult(1, Arrays.asList("Balme", "JQB", "NNB", "N Block"), 1.2, 10, Arrays.asList("JQB")),
+            new RouteResult(2, Arrays.asList("Balme", "Central Cafeteria", "NNB", "N Block"), 1.5, 12, Arrays.asList("Central Cafeteria"))
+        );
+    }
+}
+
+
+This ensures UI can be fully tested before algorithms are plugged in.
+
+🌟 Optional Extras (Only if Time Permits)
+
+Traffic delay simulation.
+
+Animated route drawing.
+
+Save route (JSON).
+
+Export route (PDF/image).
+
+Accessibility (zoom controls, colorblind-friendly colors).
+
+✅ Next Steps for UI Devs
+
+Implement RouteSearchController + RouteResultsController.
+
+Wire input fields to RoutingService.
+
+Render map + route list with dummy data.
+
+Replace MockRoutingService with real algorithm service when ready.
+
+Test with sample inputs.
