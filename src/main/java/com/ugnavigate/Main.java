@@ -2,9 +2,11 @@ package com.ugnavigate;
 
 import com.ugnavigate.algorithms.dijkstra.Dijkstra;
 import com.ugnavigate.models.*;
+import com.ugnavigate.ui.UGNavigateUI;
 import com.ugnavigate.utils.GraphUtils;
 import com.ugnavigate.utils.LandmarkLoader;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -13,26 +15,20 @@ public class Main {
     public static void main(String[] args) {
         String filePath = "data/adjacency_list.json";
         Map<String, List<Neighbor>> adjacencyList = GraphUtils.loadGraph(filePath);
-//        System.out.println("=== UG Navigate Graph ===");
-//        for (Map.Entry<String, List<Neighbor>> entry : adjacencyList.entrySet()) {
-//            System.out.println(entry.getKey() + " ->");
-//            for (Neighbor neighbor : entry.getValue()) {
-//                System.out.println("    " + neighbor);
-//            }
-//        }
 
         filePath = "data/landmarks.json";
         Map<String, Landmark> landmarks = LandmarkLoader.loadLandmarks(filePath);
         System.out.println(landmarks);
 
         Graph graph = new Graph(landmarks, adjacencyList);
+        List<Landmark> lm = new ArrayList<>(landmarks.values());
+        UGNavigateUI.launchWithLandmarks(lm);
 
         GraphNode start = graph.getNode("Ecobank");
         System.out.println("Diaspora Node: " + start.getId());
         System.out.println("Landmark Details: " + start.getLandmark());
         System.out.println("Tags related to landmark: " + start.getLandmark().getTags());
 
-//        checking to see if Ecobank can be identified as a bank...
         Map<String, String> tagsOfStart = start.getLandmark().getTags();
         if (tagsOfStart.containsKey("bank") || tagsOfStart.containsValue("bank")) {
             System.out.println("This landmark is a bank!");
@@ -54,8 +50,9 @@ public class Main {
 //        dj.solveUsingDijkstra();
 //        System.out.println(dj.getShortestDistance());
 
-        start = graph.getNode("The Balme Library");
-        destination = graph.getNode("Legon Post Office");
+        start = graph.getNode("Mathematics Dept");
+        destination = graph.getNode("Jean Nelson Aka Hall");
+        destination = graph.getNode("Night Market");
 
         if (!graph.getAllNodes().contains(start) || !graph.getAllNodes().contains(destination)) {
             throw new IllegalArgumentException("Invalid path provided! One or both nodes are not in the graph.");

@@ -13,6 +13,10 @@ public class GraphNode {
         this.id = id;
     }
 
+    public String getName(){
+        return this.id;
+    }
+
     public void setLandmark(Landmark landmark) {
         this.landmark = landmark;
     }
