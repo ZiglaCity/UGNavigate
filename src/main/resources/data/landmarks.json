@@ -1,0 +1,30 @@
+[
+  {
+    "id": "balme_library",
+    "name": "Balme Library",
+    "x": 120,
+    "y": 200,
+    "tags": ["library"]
+  },
+  {
+    "id": "jqb",
+    "name": "Jones Quartey Building (JQB)",
+    "x": 300,
+    "y": 250,
+    "tags": ["lecture_hall"]
+  },
+  {
+    "id": "n_block",
+    "name": "N Block",
+    "x": 500,
+    "y": 350,
+    "tags": ["lecture_hall"]
+  },
+  {
+    "id": "central_cafeteria",
+    "name": "Central Cafeteria",
+    "x": 400,
+    "y": 150,
+    "tags": ["cafeteria"]
+  }
+]

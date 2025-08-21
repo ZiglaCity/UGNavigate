@@ -38,3 +38,12 @@ UG Navigate is a Java-based routing solution designed to help students and visit
 
 ## Team
 DCIT 204 – Group Project, University of Ghana
+
+## Build & run (console demo)
+
+Requires Java 21 and Maven. From project root:
+
+```powershell
+mvn -DskipTests package
+java -cp target\UGNavigate-1.0-SNAPSHOT.jar com.ugnavigate.Main
+```

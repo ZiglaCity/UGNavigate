@@ -1,0 +1,22 @@
+{
+  "Balme Library": [
+  { "neighbor": "JQB", "distance_m": 120.5, "direction": "NE", "neighbor_x": 300, "neighbor_y": 250 },
+  { "neighbor": "Central Cafeteria", "distance_m": 80.0, "direction": "E", "neighbor_x": 400, "neighbor_y": 150 }
+  ],
+  "JQB": [
+  { "neighbor": "Balme Library", "distance_m": 120.5, "direction": "SW", "neighbor_x": 120, "neighbor_y": 200 },
+  { "neighbor": "NNB", "distance_m": 200.0, "direction": "N", "neighbor_x": 500, "neighbor_y": 350 }
+  ],
+  "NNB": [
+  { "neighbor": "JQB", "distance_m": 200.0, "direction": "S", "neighbor_x": 300, "neighbor_y": 250 },
+  { "neighbor": "N Block", "distance_m": 150.0, "direction": "E", "neighbor_x": 500, "neighbor_y": 350 }
+  ],
+  "N Block": [
+  { "neighbor": "NNB", "distance_m": 150.0, "direction": "W", "neighbor_x": 300, "neighbor_y": 250 },
+  { "neighbor": "Central Cafeteria", "distance_m": 220.0, "direction": "S", "neighbor_x": 400, "neighbor_y": 150 }
+  ],
+  "Central Cafeteria": [
+  { "neighbor": "Balme Library", "distance_m": 80.0, "direction": "W", "neighbor_x": 120, "neighbor_y": 200 },
+  { "neighbor": "N Block", "distance_m": 220.0, "direction": "N", "neighbor_x": 500, "neighbor_y": 350 }
+  ]
+}

@@ -106,13 +106,20 @@ public class Dijkstra {
         shortestPath = path;
 
         StringBuilder sb = new StringBuilder();
-        sb.append("From ").append(start.getLandmark().getName());
+        sb.append("From ").append(safeName(start));
         for (GraphNode node : shortestPath) {
             if (!node.equals(start)) {
-                sb.append(" --> ").append(node.getLandmark().getName());
+                sb.append(" --> ").append(safeName(node));
             }
         }
         pathSummary = sb.toString();
+    }
+
+    private String safeName(GraphNode node) {
+        if (node == null) return "Unknown";
+        return (node.getLandmark() != null && node.getLandmark().getName() != null)
+                ? node.getLandmark().getName()
+                : node.getId();
     }
 
     public double getShortestDistance() {
